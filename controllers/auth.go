@@ -49,7 +49,19 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 
 // GetProfile takes the UserForm, edits the profile
 func GetProfile(w http.ResponseWriter, r *http.Request) {
-	// do stuff
+	var user models.User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		panic(err)
+	}
+
+	// log.Println(user)
+
+	err = json.NewEncoder(w).Encode(&user)
+	if err != nil {
+		panic(err)
+	}
+
 }
 
 // EditProfile takes the UserForm, edits the profile
