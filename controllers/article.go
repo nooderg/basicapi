@@ -7,6 +7,7 @@ import (
 
 // GetArticle enocodes an article
 func GetArticle(w http.ResponseWriter, r *http.Request) {
+	//Dumb data
 	article := struct {
 		ID   string
 		text string
@@ -15,6 +16,7 @@ func GetArticle(w http.ResponseWriter, r *http.Request) {
 		"Texttttt",
 	}
 
+	//How you send stuff in the response
 	json.NewEncoder(w).Encode(article)
 }
 
