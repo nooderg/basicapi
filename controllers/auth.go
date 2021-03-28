@@ -31,10 +31,9 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var userFound models.User
-	res := db.Model(&userFound).Where("username = ?", userForm.Username).Find(&userFound)
+	res := db.Model(&models.User{}).Where("username = ?", userForm.Username).Find(&models.User{})
 	if res.RowsAffected != 0 {
-		log.Println("user already exists")
+		log.Println("user already exists: " + userForm.Username)
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
