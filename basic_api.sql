@@ -5,7 +5,7 @@ create table articles
     username   varchar(255) null,
     title      varchar(255) null,
     content    text         null,
-    created_at datetime     null,
+    created_at date     null,
     constraint fk_articles_comments_1
         foreign key (id) references comments (id)
 );
@@ -16,7 +16,7 @@ create table comments
         primary key,
     username   varchar(255) null,
     content    text         null,
-    created_at datetime     null,
+    created_at date     null,
     article_id int          null
 );
 
