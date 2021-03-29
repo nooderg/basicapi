@@ -60,15 +60,19 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		panic(err)
+		log.Println("cannot decode request body")
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	db, err := config.InitDB()
 	if err != nil {
-		panic(err)
+		log.Println("cannot init db")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
-	res := db.Model(&user).Where("id = ?", user.ID).Find(&user)
+	res := db.Model(&user).Where("id = ?", user.ID).Take(&user)
 	if res.RowsAffected == 0 {
 		log.Println("user does not exist")
 		w.WriteHeader(http.StatusForbidden)
@@ -79,7 +83,9 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewEncoder(w).Encode(&user)
 	if err != nil {
-		panic(err)
+		log.Println("cannot encode response")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 }
 
