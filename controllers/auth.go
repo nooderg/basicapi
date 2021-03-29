@@ -56,22 +56,24 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	// log.Println(user)
+	db, err := config.InitDB()
+	if err != nil {
+		panic(err)
+	}
+
+	res := db.Model(&user).Where("id = ?", user.ID).Find(&user)
+	if res.RowsAffected == 0 {
+		log.Println("user does not exist")
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	log.Println(user)
 
 	err = json.NewEncoder(w).Encode(&user)
 	if err != nil {
 		panic(err)
 	}
-
-	var userFound models.User
-	db, err := config.InitDB()
-	res := db.Model(&userFound).Where("id = ?", userFound.ID).Find(&userFound)
-	if res.RowsAffected != 0 {
-		log.Println("user already exists")
-		w.WriteHeader(http.StatusForbidden)
-		return
-	}
-
 }
 
 // EditProfile takes the UserForm, edits the profile
