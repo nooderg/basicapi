@@ -1,12 +1,17 @@
 package middlewares
 
 import (
+	"log"
 	"net/http"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 )
 
+var signingKey = []byte("this is a key")
+
 func myLookupKey(token []byte) ([]byte, error) {
-	if (true) {
+	if true {
 		return token, nil
 	} else {
 		return []byte{}, nil
@@ -17,11 +22,13 @@ func JWTVerify(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenToTest := r.Header.Get("jwt")
 
-		token, err := jwt.Parse(tokenToTest, func(token *jwt.Token) ([]byte, error) {
+		token, err := jwt.Parse(tokenToTest, func(token *jwt.Token) (interface{}, error) {
 			// logique pour vérifier
-			return myLookupKey(token.Header["kid"])
+			// return myLookupKey(token.Header["kid"])
+			log.Println(token)
+			return nil, nil
 		})
-	
+
 		if err == nil && token.Valid {
 			// token is ok
 		} else {
@@ -38,10 +45,11 @@ func JWTCreate(next http.HandlerFunc) http.HandlerFunc {
 		// Create the token
 		token := jwt.New(jwt.GetSigningMethod("HS256"))
 
-		// Set some claims
-		token.Claims["username"] = "bar"
-		token.Claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-		// Sign and get the complete encoded token as a string
+		claims := make(jwt.MapClaims)
+		claims["username"] = "username test"
+		claims["date"] = time.Now().Unix()
+		token.Claims = claims
+
 		tokenString, err := token.SignedString(mySigningKey)
 
 		next(w, r)
