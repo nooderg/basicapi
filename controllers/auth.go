@@ -73,7 +73,7 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res := db.Model(&user).Where("id = ?", user.ID).Take(&user)
-	if res.RowsAffected == 0 {
+	if res.Error != nil {
 		log.Println("user does not exist")
 		w.WriteHeader(http.StatusForbidden)
 		return
