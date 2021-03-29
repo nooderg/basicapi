@@ -3,6 +3,8 @@ package forms
 import (
 	"basic-api/models"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // UserForm is used to edit or create an user
@@ -22,6 +24,18 @@ type LoginForm struct {
 	Password string `json:"password"`
 }
 
-func (*UserForm) PrepareRegister() (*models.User, error) {
-	return nil, nil
+func (u UserForm) PrepareRegister() (*models.User, error) {
+	hashedPassword, err := (bcrypt.GenerateFromPassword([]byte(u.Password), 10))
+	if err != nil {
+		return nil, err
+	}
+	user := models.User{
+		FirstName: u.FirstName,
+		LastName:  u.LastName,
+		City:      u.City,
+		Dob:       u.Dob.Format("2006-01-02"),
+		Username:  u.Username,
+		Password:  string(hashedPassword),
+	}
+	return &user, nil
 }

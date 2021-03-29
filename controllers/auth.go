@@ -18,33 +18,40 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 func HandleRegister(w http.ResponseWriter, r *http.Request) {
 	db, err := config.InitDB()
 	if err != nil {
-		panic(err)
+		log.Println("cannot init db")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	var userForm forms.UserForm
 	err = json.NewDecoder(r.Body).Decode(&userForm)
 	if err != nil {
-		panic(err)
+		log.Println("cannot decode request body")
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
-	//
-	// Make a method in UserForm (PrepareRegister) to check potential errors in the form + hash password + return a User
-	//
+	res := db.Model(&models.User{}).Where("username = ?", userForm.Username).Find(&models.User{})
+	if res.RowsAffected != 0 {
+		log.Println("user already exists: " + userForm.Username)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
-	user := models.User{
-		FirstName: userForm.FirstName,
-		LastName:  userForm.LastName,
-		City:      userForm.City,
-		Dob:       userForm.Dob.Format("2006-01-02"),
-		Username:  userForm.Username,
-		Password:  userForm.Password,
+	user, err := userForm.PrepareRegister()
+	if err != nil {
+		log.Println("cannot prepare register")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	db.Create(&user)
 
 	err = json.NewEncoder(w).Encode(user)
 	if err != nil {
-		panic(err)
+		log.Println("cannot encode response")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 }
 
