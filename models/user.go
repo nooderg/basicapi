@@ -1,5 +1,7 @@
 package models
 
+import "golang.org/x/crypto/bcrypt"
+
 // User represents the user in the database
 type User struct {
 	ID        int    `gorm:"primary_key;auto_increment" json:"id"`
@@ -19,4 +21,9 @@ type LoggedUser struct {
 	Dob       string `json:"dob"`
 	City      string `json:"city"`
 	Username  string `json:"username"`
+}
+
+func (u User) CheckPassword(pswrd string) error {
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(pswrd))
+	return err
 }
