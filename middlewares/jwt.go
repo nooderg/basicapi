@@ -3,66 +3,42 @@ package middlewares
 import (
 	"log"
 	"net/http"
-	"time"
-	"os"
-
-	"github.com/joho/godotenv"
-	"github.com/dgrijalva/jwt-go"
 )
 
-var signingKey = []byte("this is a key")
-
-func myLookupKey(token []byte) ([]byte, error) {
-	if true {
-		return token, nil
-	} else {
-		return []byte{}, nil
+func generateToken(userid int) string {
+	jwtWrapper := JwtWrapper{
+		SecretKey: getSecretKey(),
+		Issuer: "AuthService",
+		ExpirationHours: 24,
 	}
-}
 
-func getSignedKey() string {
-	err := godotenv.Load(".env")
+	generatedToken, err := jwtWrapper.GenerateToken(userid)
 
 	if err != nil {
-	  log.Fatalf("Error loading .env file")
+		log.Println(err)
 	}
 
-	return os.Getenv("JWT_KEY")
+	return generatedToken
 }
 
 func JWTVerify(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		tokenToTest := r.Header.Get("jwt")
-
-		token, err := jwt.Parse(tokenToTest, func(token *jwt.Token) (interface{}, error) {
-			// logique pour vérifier
-			// return myLookupKey(token.Header["kid"])
-			log.Println(token)
-			return nil, nil
-		})
-
-		if err == nil && token.Valid {
-			// token is ok
-		} else {
-			// token is not ok
+		jwtWrapper := JwtWrapper{
+			SecretKey: getSecretKey(),
+			Issuer: "AuthService",
 		}
 
-		next(w, r)
-	}
-}
+		claims, err := jwtWrapper.ValidateToken(r.Header.Get("Authorization"))
 
-// TODO: transform to a normal function, not a middleware
-func JWTCreate(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Create the token
-		token := jwt.New(jwt.GetSigningMethod("HS256"))
-
-		claims := make(jwt.MapClaims)
-		claims["username"] = "username test"
-		claims["date"] = time.Now().Unix()
-		token.Claims = claims
-
-		tokenString, err := token.SignedString(getSignedKey())
+		if err != nil {
+			log.Println("jwt not ok")
+			log.Println(err)
+			log.Println(claims)
+		} else {
+			log.Println("jwt ok")
+			log.Println(err)
+			log.Println(claims)
+		}
 
 		next(w, r)
 	}

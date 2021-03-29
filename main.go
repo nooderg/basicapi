@@ -31,7 +31,7 @@ func main() {
 
 	r.HandleFunc("/login", middlewares.Middleware(controllers.HandleLogin)).Methods("POST")
 	r.HandleFunc("/register", middlewares.Middleware(controllers.HandleRegister)).Methods("POST")
-	r.HandleFunc("/profile", middlewares.Middleware(controllers.GetProfile)).Methods("GET")
+	r.HandleFunc("/profile", middlewares.JWTVerify(controllers.GetProfile)).Methods("GET")
 	r.HandleFunc("/users/{id}", middlewares.Middleware(controllers.EditProfile)).Methods("PUT")
 
 	log.Fatal(http.ListenAndServe(":8080", r))
