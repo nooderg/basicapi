@@ -5,6 +5,7 @@ import (
 	"basic-api/forms"
 	"basic-api/models"
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -60,6 +61,15 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 	err = json.NewEncoder(w).Encode(&user)
 	if err != nil {
 		panic(err)
+	}
+
+	var userFound models.User
+	db, err := config.InitDB()
+	res := db.Model(&userFound).Where("id = ?", userFound.ID).Find(&userFound)
+	if res.RowsAffected != 0 {
+		log.Println("user already exists")
+		w.WriteHeader(http.StatusForbidden)
+		return
 	}
 
 }
