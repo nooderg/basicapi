@@ -4,7 +4,9 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/dgrijalva/jwt-go"
 )
 
@@ -16,6 +18,16 @@ func myLookupKey(token []byte) ([]byte, error) {
 	} else {
 		return []byte{}, nil
 	}
+}
+
+func getSignedKey() string {
+	err := godotenv.Load(".env")
+
+	if err != nil {
+	  log.Fatalf("Error loading .env file")
+	}
+
+	return os.Getenv("JWT_KEY")
 }
 
 func JWTVerify(next http.HandlerFunc) http.HandlerFunc {
@@ -50,7 +62,7 @@ func JWTCreate(next http.HandlerFunc) http.HandlerFunc {
 		claims["date"] = time.Now().Unix()
 		token.Claims = claims
 
-		tokenString, err := token.SignedString(mySigningKey)
+		tokenString, err := token.SignedString(getSignedKey())
 
 		next(w, r)
 	}
