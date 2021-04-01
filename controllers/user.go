@@ -164,6 +164,13 @@ func EditProfile(w http.ResponseWriter, r *http.Request) {
 	newUser, err := userForm.PrepareUser()
 	newUser.ID = uint(id)
 
+	err = db.Model(&models.User{}).Where("id = ?", id).Updates(newUser).Error
+	if err != nil {
+		log.Println("cannot update user")
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	newUser.PrepareResponse()
 
 	err = json.NewEncoder(w).Encode(newUser)

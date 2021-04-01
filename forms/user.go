@@ -3,6 +3,7 @@ package forms
 import (
 	"basic-api/models"
 	"errors"
+	"log"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -24,6 +25,7 @@ type LoginForm struct {
 
 func (u UserForm) PrepareUser() (*models.User, error) {
 	if u.Password != u.ConfirmPassword {
+		log.Println("passwords don't match")
 		return nil, errors.New("passwords don't match")
 	}
 
