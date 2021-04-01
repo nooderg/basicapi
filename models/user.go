@@ -13,6 +13,9 @@ type User struct {
 	Email    string    `json:"email"`
 	Username string    `json:"username" gorm:"column:username;not null;type:text"`
 	Password string    `json:"password"  gorm:"column:password;not null;type:text"`
+	Articles []Article
+	Comments []Comment
+	Opinions []Opinion
 }
 
 func (u *User) PrepareResponse() {

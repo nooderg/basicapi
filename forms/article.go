@@ -2,7 +2,6 @@ package forms
 
 import (
 	"basic-api/models"
-	"time"
 )
 
 // ArticleForm is the form for the request CreateArticle
@@ -11,12 +10,12 @@ type ArticleForm struct {
 	Content string `json:"content"`
 }
 
-func (a ArticleForm) PrepareArticle() models.Article {
+func (a ArticleForm) PrepareArticle(user models.User) models.Article {
 	article := models.Article{
-		Title:     a.Title,
-		Content:   a.Content,
-		CreatedAt: time.Now(),
-		UserID:    1,
+		Title:   a.Title,
+		Content: a.Content,
+		UserID:  1,
+		User:    user,
 	}
 	return article
 }

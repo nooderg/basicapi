@@ -9,16 +9,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"gorm.io/gorm"
 )
-
-// Fills the article's author
-func FillArticle(db *gorm.DB, article *models.Article) error {
-	if article.ID != 0 {
-		return db.Model(&models.User{}).Where("id = ?", article.UserID).Take(&article.Author).Error
-	}
-	return nil
-}
 
 // GetArticle enocodes an article
 func GetArticle(w http.ResponseWriter, r *http.Request) {
@@ -38,8 +29,6 @@ func GetArticle(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
-
-	FillArticle(db, &article)
 
 	err = json.NewEncoder(w).Encode(&article)
 	if err != nil {
@@ -92,7 +81,15 @@ func PostArticle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	article := articleForm.PrepareArticle()
+	var user models.User
+	err = db.Model(&models.User{}).Where("id = ?", uint(1)).Find(&user).Error
+	if err != nil {
+		log.Println("cannot get user")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	article := articleForm.PrepareArticle(user)
 
 	err = db.Table("articles").Create(&article).Error
 	if err != nil {
