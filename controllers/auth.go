@@ -11,7 +11,44 @@ import (
 
 // HandleLogin checks the email and password and returns the token
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
-	// do stuff
+	db, err := config.InitDB()
+	if err != nil {
+		log.Println("cannot init db")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	var loginForm forms.LoginForm
+	err = json.NewDecoder(r.Body).Decode(&loginForm)
+	if err != nil {
+		log.Println("cannot decode request body")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var user models.User
+	res := db.Model(&models.User{}).Where("username = ?", loginForm.Username).Take(&user)
+	if res.Error != nil {
+		log.Println("user not found: " + loginForm.Username)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	err = user.CheckPassword(loginForm.Password)
+	if err != nil {
+		log.Println("wrong password for: " + loginForm.Username)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	// waiting for jwt
+
+	err = json.NewEncoder(w).Encode(true)
+	if err != nil {
+		log.Println("cannot encode response")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 // HandleRegister takes the UserForm, registers the user
@@ -31,8 +68,8 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := db.Model(&models.User{}).Where("username = ?", userForm.Username).Find(&models.User{})
-	if res.RowsAffected != 0 {
+	res := db.Model(&models.User{}).Where("username = ?", userForm.Username).Take(&models.User{})
+	if res.Error == nil {
 		log.Println("user already exists: " + userForm.Username)
 		w.WriteHeader(http.StatusForbidden)
 		return
