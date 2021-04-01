@@ -2,6 +2,8 @@ package forms
 
 import (
 	"basic-api/models"
+	"errors"
+	"log"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -21,7 +23,12 @@ type LoginForm struct {
 	Password string `json:"password"`
 }
 
-func (u UserForm) PrepareRegister() (*models.User, error) {
+func (u UserForm) PrepareUser() (*models.User, error) {
+	if u.Password != u.ConfirmPassword {
+		log.Println("passwords don't match")
+		return nil, errors.New("passwords don't match")
+	}
+
 	hashedPassword, err := (bcrypt.GenerateFromPassword([]byte(u.Password), 10))
 	if err != nil {
 		return nil, err

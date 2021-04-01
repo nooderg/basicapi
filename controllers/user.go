@@ -27,8 +27,8 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user models.User
-	res := db.Model(&models.User{}).Where("username = ?", loginForm.Username).Take(&user)
-	if res.Error != nil {
+	err = db.Model(&models.User{}).Where("username = ?", loginForm.Username).Take(&user).Error
+	if err != nil {
 		log.Println("user not found: " + loginForm.Username)
 		w.WriteHeader(http.StatusForbidden)
 		return
@@ -68,14 +68,14 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := db.Model(&models.User{}).Where("username = ?", userForm.Username).Take(&models.User{})
-	if res.Error == nil {
+	err = db.Model(&models.User{}).Where("username = ?", userForm.Username).Take(&models.User{}).Error
+	if err == nil {
 		log.Println("user already exists: " + userForm.Username)
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
-	user, err := userForm.PrepareRegister()
+	user, err := userForm.PrepareUser()
 	if err != nil {
 		log.Println("cannot prepare register")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -88,6 +88,8 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	user.PrepareResponse()
+
 	err = json.NewEncoder(w).Encode(user)
 	if err != nil {
 		log.Println("cannot encode response")
@@ -98,11 +100,46 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 
 // GetProfile takes the UserForm, edits the profile
 func GetProfile(w http.ResponseWriter, r *http.Request) {
+	db, err := config.InitDB()
+	if err != nil {
+		log.Println("cannot init db")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	//Get user ID with jwt
+	//Temporary solution
+	id := 1
 	var user models.User
-	err := json.NewDecoder(r.Body).Decode(&user)
+	err = db.Model(&models.User{}).Where("id = ?", id).Take(&user).Error
+	if err != nil {
+		log.Println("user does not exist")
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	user.PrepareResponse()
+	err = json.NewEncoder(w).Encode(user)
+	if err != nil {
+		log.Println("cannot encode response")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+// EditProfile takes the UserForm, edits the profile
+func EditProfile(w http.ResponseWriter, r *http.Request) {
+	var userForm forms.UserForm
+	err := json.NewDecoder(r.Body).Decode(&userForm)
 	if err != nil {
 		log.Println("cannot decode request body")
 		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if userForm.Password != userForm.ConfirmPassword {
+		log.Println("passwords are not matching")
+		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
@@ -113,24 +150,33 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := db.Model(&user).Where("id = ?", user.ID).Take(&user)
-	if res.Error != nil {
+	//Get user ID with jwt AYMERIC IM LOOKING AT YOU
+	//Temporary solution
+	id := 1
+	var user models.User
+	err = db.Model(&models.User{}).Where("id = ?", id).Take(&user).Error
+	if err != nil {
 		log.Println("user does not exist")
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
-	log.Println(user)
+	newUser, err := userForm.PrepareUser()
+	newUser.ID = uint(id)
 
-	err = json.NewEncoder(w).Encode(&user)
+	err = db.Model(&models.User{}).Where("id = ?", id).Updates(newUser).Error
+	if err != nil {
+		log.Println("cannot update user")
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	newUser.PrepareResponse()
+
+	err = json.NewEncoder(w).Encode(newUser)
 	if err != nil {
 		log.Println("cannot encode response")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-}
-
-// EditProfile takes the UserForm, edits the profile
-func EditProfile(w http.ResponseWriter, r *http.Request) {
-	// do stuff
 }
