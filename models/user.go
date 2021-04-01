@@ -1,26 +1,24 @@
 package models
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"time"
 
-// User represents the user in the database
+	"golang.org/x/crypto/bcrypt"
+)
+
+// User represents the user in the DB
 type User struct {
-	ID        int    `gorm:"primary_key;auto_increment" json:"id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Dob       string `json:"dob"`
-	City      string `json:"city"`
-	Username  string `json:"username"`
-	Password  string `json:"password"`
+	ID       uint      `json:"id" gorm:"primary_key"`
+	Dob      time.Time `json:"dob"`
+	Username string    `json:"username" gorm:"column:username;not null;type:text"`
+	Password string    `json:"password"  gorm:"column:password;not null;type:text"`
 }
 
 // LoggedUser is used to return user data
 type LoggedUser struct {
-	ID        int    `json:"id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Dob       string `json:"dob"`
-	City      string `json:"city"`
-	Username  string `json:"username"`
+	ID       uint      `json:"id"`
+	Dob      time.Time `json:"dob"`
+	Username string    `json:"username"`
 }
 
 func (u User) CheckPassword(pswrd string) error {

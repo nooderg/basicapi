@@ -18,7 +18,7 @@ func main() {
 		panic(err)
 	}
 
-	r.HandleFunc("/article", middlewares.Middleware(controllers.PostArticles)).Methods("POST")
+	r.HandleFunc("/article", middlewares.Middleware(controllers.PostArticle)).Methods("POST")
 	r.HandleFunc("/article/{id}", middlewares.Middleware(controllers.GetArticle)).Methods("GET")
 	r.HandleFunc("/article/{id}/like", middlewares.Middleware(controllers.LikeArticle)).Methods("POST")
 	r.HandleFunc("/article/{id}/dislike", middlewares.Middleware(controllers.DislikeArticle)).Methods("POST")
@@ -27,7 +27,7 @@ func main() {
 	r.HandleFunc("/article/{id}/comment/like", middlewares.Middleware(controllers.PostLikeComment)).Methods("POST")
 	r.HandleFunc("/article/{id}/comment/dislike", middlewares.Middleware(controllers.PostDislikeComment)).Methods("POST")
 
-	r.HandleFunc("/articles", middlewares.Middleware(controllers.GetArticles)).Methods("GET")
+	r.HandleFunc("/articles", middlewares.Middleware(controllers.ListArticles)).Methods("GET")
 
 	r.HandleFunc("/login", middlewares.Middleware(controllers.HandleLogin)).Methods("POST")
 	r.HandleFunc("/register", middlewares.Middleware(controllers.HandleRegister)).Methods("POST")
