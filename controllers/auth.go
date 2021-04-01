@@ -45,7 +45,11 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.Create(&user)
+	err = db.Create(&user).Error
+	if err != nil {
+		log.Println(err)
+		panic(err)
+	}
 
 	err = json.NewEncoder(w).Encode(user)
 	if err != nil {
