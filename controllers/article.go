@@ -81,8 +81,9 @@ func PostArticle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID := r.Header.Get("user_id")
 	var user models.User
-	err = db.Model(&models.User{}).Where("id = ?", uint(1)).Find(&user).Error
+	err = db.Model(&models.User{}).Where("id = ?", userID).Find(&user).Error
 	if err != nil {
 		log.Println("cannot get user")
 		w.WriteHeader(http.StatusBadRequest)
@@ -103,14 +104,4 @@ func PostArticle(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-}
-
-// LikeArticle takes the LikeArticleForm
-func LikeArticle(w http.ResponseWriter, r *http.Request) {
-	// fill database
-}
-
-// DislikeArticle takes the LikeArticleForm
-func DislikeArticle(w http.ResponseWriter, r *http.Request) {
-	// fill database
 }
