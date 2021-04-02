@@ -6,7 +6,9 @@ This is a school project made for GoLang practice only. It is therefore not reco
 
 
 ## Usage
-Fetch the depedencies, and run:
+- Create a schema in your database called basic_api
+
+- Fetch the depedencies, and run:
 ```bash
 go run main.go 
 ```
