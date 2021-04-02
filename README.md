@@ -18,3 +18,12 @@ Get on your postman account, then in your workspaces, then click "import", link,
 ```bash
 https://www.getpostman.com/collections/31cf12a58260232d9e05
 ```
+
+## Etudiant participant
+- Théo Fénique
+
+- Aymeric Moehn
+
+- Armand Benichou
+
+- James Harrys
