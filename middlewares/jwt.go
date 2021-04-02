@@ -1,30 +1,28 @@
 package middlewares
 
 import (
-	"log"
-	"net/http"
 	"basic-api/utils"
+	"encoding/json"
+	"net/http"
+	"strconv"
 )
 
 func JWTVerify(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		jwtWrapper := utils.JwtWrapper{
 			SecretKey: utils.GetJWTSecretKey(),
-			Issuer: "AuthService",
+			Issuer:    "AuthService",
 		}
 
 		claims, err := jwtWrapper.ValidateToken(r.Header.Get("Authorization"))
 
 		if err != nil {
-			log.Println("jwt not ok")
-			log.Println(err)
-			log.Println(claims)
+			w.WriteHeader(http.StatusForbidden)
+			json.NewEncoder(w).Encode("token not valid")
+			return
 		} else {
-			log.Println("jwt ok")
-			log.Println(err)
-			log.Println(claims)
+			r.Header.Set("user_id", strconv.Itoa(int(claims.UserID)))
+			next(w, r)
 		}
-
-		next(w, r)
 	}
 }

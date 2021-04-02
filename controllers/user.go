@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 // HandleLogin checks the email and password and returns the token
@@ -41,8 +43,6 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
-
-	// waiting for jwt
 
 	jwtToken := utils.GenerateToken(user.ID)
 
@@ -103,8 +103,8 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetProfile takes the UserForm, edits the profile
-func GetProfile(w http.ResponseWriter, r *http.Request) {
+// GetMe gets the userID in the JWT, returns the user
+func GetMe(w http.ResponseWriter, r *http.Request) {
 	db, err := config.InitDB()
 	if err != nil {
 		log.Println("cannot init db")
@@ -112,9 +112,35 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Get user ID with jwt
-	//Temporary solution
-	id := 1
+	userID := r.Header.Get("user_id")
+	var user models.User
+	err = db.Model(&models.User{}).Where("id = ?", userID).Take(&user).Error
+	if err != nil {
+		log.Println("user does not exist")
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	user.PrepareResponse()
+	err = json.NewEncoder(w).Encode(user)
+	if err != nil {
+		log.Println("cannot encode response")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+// GetProfile takes an ID and returns the matching profile
+func GetProfile(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+
+	db, err := config.InitDB()
+	if err != nil {
+		log.Println("cannot init db")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	var user models.User
 	err = db.Model(&models.User{}).Where("id = ?", id).Take(&user).Error
 	if err != nil {
@@ -155,11 +181,9 @@ func EditProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Get user ID with jwt AYMERIC IM LOOKING AT YOU
-	//Temporary solution
-	id := 1
+	userID := r.Header.Get("user_id")
 	var user models.User
-	err = db.Model(&models.User{}).Where("id = ?", id).Take(&user).Error
+	err = db.Model(&models.User{}).Where("id = ?", userID).Take(&user).Error
 	if err != nil {
 		log.Println("user does not exist")
 		w.WriteHeader(http.StatusForbidden)
@@ -167,9 +191,9 @@ func EditProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newUser, err := userForm.PrepareUser()
-	newUser.ID = uint(id)
+	newUser.ID = uint(user.ID)
 
-	err = db.Model(&models.User{}).Where("id = ?", id).Updates(newUser).Error
+	err = db.Model(&models.User{}).Where("id = ?", user.ID).Updates(newUser).Error
 	if err != nil {
 		log.Println("cannot update user")
 		w.WriteHeader(http.StatusForbidden)

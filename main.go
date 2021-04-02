@@ -11,28 +11,35 @@ import (
 )
 
 func main() {
+	log.Println("Starting server...")
 	r := mux.NewRouter()
 
+	log.Println("Connecting to database...")
 	_, err := config.InitDB()
 	if err != nil {
 		panic(err)
 	}
 
-	r.HandleFunc("/article", middlewares.Middleware(controllers.PostArticle)).Methods("POST")
-	r.HandleFunc("/article/{id}", middlewares.Middleware(controllers.GetArticle)).Methods("GET")
-	r.HandleFunc("/article/{id}/like", middlewares.Middleware(controllers.LikeArticle)).Methods("POST")
-	r.HandleFunc("/article/{id}/dislike", middlewares.Middleware(controllers.DislikeArticle)).Methods("POST")
+	log.Println("Connected to database!")
 
-	r.HandleFunc("/article/{id}/comment", middlewares.Middleware(controllers.PostComment)).Methods("POST")
-	r.HandleFunc("/article/{id}/comment/like", middlewares.Middleware(controllers.PostLikeComment)).Methods("POST")
-	r.HandleFunc("/article/{id}/comment/dislike", middlewares.Middleware(controllers.PostDislikeComment)).Methods("POST")
+	r.HandleFunc("/article", controllers.PostArticle).Methods("POST")
+	r.HandleFunc("/article/{id}", controllers.GetArticle).Methods("GET")
+	r.HandleFunc("/article/{id}/like", controllers.LikeArticle).Methods("POST")
+	r.HandleFunc("/article/{id}/dislike", controllers.DislikeArticle).Methods("POST")
 
-	r.HandleFunc("/articles", middlewares.Middleware(controllers.ListArticles)).Methods("GET")
+	r.HandleFunc("/article/{id}/comment", controllers.PostComment).Methods("POST")
+	r.HandleFunc("/article/{id}/comment/like", controllers.PostLikeComment).Methods("POST")
+	r.HandleFunc("/article/{id}/comment/dislike", controllers.PostDislikeComment).Methods("POST")
 
-	r.HandleFunc("/login", middlewares.Middleware(controllers.HandleLogin)).Methods("POST")
-	r.HandleFunc("/register", middlewares.Middleware(controllers.HandleRegister)).Methods("POST")
-	r.HandleFunc("/profile", middlewares.JWTVerify(controllers.GetProfile)).Methods("GET")
-	r.HandleFunc("/users/{id}", middlewares.Middleware(controllers.EditProfile)).Methods("PUT")
+	r.HandleFunc("/articles", controllers.ListArticles).Methods("GET")
+
+	r.HandleFunc("/login", controllers.HandleLogin).Methods("POST")
+	r.HandleFunc("/register", controllers.HandleRegister).Methods("POST")
+	r.HandleFunc("/me", middlewares.JWTVerify(controllers.GetProfile)).Methods("GET")
+	r.HandleFunc("/users/{id}", controllers.GetProfile).Methods("GET")
+	r.HandleFunc("/users/{id}", middlewares.JWTVerify(controllers.EditProfile)).Methods("PUT")
+
+	log.Println("Server running!")
 
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

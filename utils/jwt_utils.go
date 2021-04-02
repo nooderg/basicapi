@@ -1,13 +1,13 @@
 package utils
 
 import (
-	"log"
-	"time"
 	"errors"
+	"log"
 	"os"
+	"time"
 
-	"github.com/joho/godotenv"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/joho/godotenv"
 )
 
 // JwtWrapper wraps the signing key and the issuer
@@ -19,15 +19,14 @@ type JwtWrapper struct {
 
 // JwtClaim adds userid as a claim to the token
 type JwtClaim struct {
-	UserID int
+	UserID uint
 	jwt.StandardClaims
 }
 
 func GetJWTSecretKey() string {
 	err := godotenv.Load(".env")
-
 	if err != nil {
-	  log.Fatalf("Error loading .env file")
+		log.Fatalf("Error loading .env file")
 	}
 
 	return os.Getenv("JWT_KEY")
@@ -36,7 +35,7 @@ func GetJWTSecretKey() string {
 // GenerateToken generates a jwt token
 func (j *JwtWrapper) SignToken(userid uint) (signedToken string, err error) {
 	claims := &JwtClaim{
-		UserID: int(userid),
+		UserID: userid,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(j.ExpirationHours)).Unix(),
 			Issuer:    j.Issuer,
@@ -55,8 +54,8 @@ func (j *JwtWrapper) SignToken(userid uint) (signedToken string, err error) {
 
 func GenerateToken(userid uint) string {
 	jwtWrapper := JwtWrapper{
-		SecretKey: GetJWTSecretKey(),
-		Issuer: "AuthService",
+		SecretKey:       GetJWTSecretKey(),
+		Issuer:          "AuthService",
 		ExpirationHours: 24,
 	}
 
