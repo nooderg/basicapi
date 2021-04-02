@@ -1,4 +1,4 @@
-package middlewares
+package utils
 
 import (
 	"log"
@@ -23,7 +23,7 @@ type JwtClaim struct {
 	jwt.StandardClaims
 }
 
-func getSecretKey() string {
+func GetJWTSecretKey() string {
 	err := godotenv.Load(".env")
 
 	if err != nil {
@@ -34,9 +34,9 @@ func getSecretKey() string {
 }
 
 // GenerateToken generates a jwt token
-func (j *JwtWrapper) GenerateToken(userid int) (signedToken string, err error) {
+func (j *JwtWrapper) SignToken(userid uint) (signedToken string, err error) {
 	claims := &JwtClaim{
-		UserID: userid,
+		UserID: int(userid),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(j.ExpirationHours)).Unix(),
 			Issuer:    j.Issuer,
@@ -45,12 +45,28 @@ func (j *JwtWrapper) GenerateToken(userid int) (signedToken string, err error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	signedToken, err = token.SignedString([]byte(getSecretKey()))
+	signedToken, err = token.SignedString([]byte(GetJWTSecretKey()))
 	if err != nil {
 		return
 	}
 
 	return
+}
+
+func GenerateToken(userid uint) string {
+	jwtWrapper := JwtWrapper{
+		SecretKey: GetJWTSecretKey(),
+		Issuer: "AuthService",
+		ExpirationHours: 24,
+	}
+
+	generatedToken, err := jwtWrapper.SignToken(userid)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	return generatedToken
 }
 
 //ValidateToken validates the jwt token
@@ -59,7 +75,7 @@ func (j *JwtWrapper) ValidateToken(signedToken string) (claims *JwtClaim, err er
 		signedToken,
 		&JwtClaim{},
 		func(token *jwt.Token) (interface{}, error) {
-			return []byte(getSecretKey()), nil
+			return []byte(GetJWTSecretKey()), nil
 		},
 	)
 

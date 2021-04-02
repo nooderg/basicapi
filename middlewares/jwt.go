@@ -3,28 +3,13 @@ package middlewares
 import (
 	"log"
 	"net/http"
+	"basic-api/utils"
 )
-
-func generateToken(userid int) string {
-	jwtWrapper := JwtWrapper{
-		SecretKey: getSecretKey(),
-		Issuer: "AuthService",
-		ExpirationHours: 24,
-	}
-
-	generatedToken, err := jwtWrapper.GenerateToken(userid)
-
-	if err != nil {
-		log.Println(err)
-	}
-
-	return generatedToken
-}
 
 func JWTVerify(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		jwtWrapper := JwtWrapper{
-			SecretKey: getSecretKey(),
+		jwtWrapper := utils.JwtWrapper{
+			SecretKey: utils.GetJWTSecretKey(),
 			Issuer: "AuthService",
 		}
 

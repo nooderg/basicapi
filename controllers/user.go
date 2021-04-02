@@ -4,6 +4,7 @@ import (
 	"basic-api/config"
 	"basic-api/forms"
 	"basic-api/models"
+	"basic-api/utils"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -43,7 +44,9 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// waiting for jwt
 
-	err = json.NewEncoder(w).Encode(true)
+	jwtToken := utils.GenerateToken(user.ID)
+
+	err = json.NewEncoder(w).Encode(jwtToken)
 	if err != nil {
 		log.Println("cannot encode response")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -88,9 +91,11 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	jwtToken := utils.GenerateToken(user.ID)
+
 	user.PrepareResponse()
 
-	err = json.NewEncoder(w).Encode(user)
+	err = json.NewEncoder(w).Encode(jwtToken)
 	if err != nil {
 		log.Println("cannot encode response")
 		w.WriteHeader(http.StatusInternalServerError)
