@@ -12,7 +12,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// LikeArticle takes the LikeArticleForm
+// RateArticle takes the OpignionForm
 func RateArticle(w http.ResponseWriter, r *http.Request) {
 	db, err := config.InitDB()
 	if err != nil {
@@ -86,4 +86,26 @@ func RateArticle(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+}
+
+// DeleteOpinion removes an opinion on the given articleID
+func DeleteOpinion(w http.ResponseWriter, r *http.Request) {
+	db, err := config.InitDB()
+	if err != nil {
+		log.Println("cannot init db")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	articleID, _ := strconv.Atoi(mux.Vars(r)["id"])
+	userID, _ := strconv.Atoi(r.Header.Get("user_id"))
+
+	err = db.Model(&models.Opinion{}).Where(&models.Opinion{UserID: uint(userID), ArticleID: uint(articleID)}).Delete(&models.Opinion{}).Error
+	if err != nil {
+		log.Println("no opinion for this user on this article")
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	json.NewEncoder(w).Encode(true)
 }

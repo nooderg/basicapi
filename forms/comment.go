@@ -11,13 +11,13 @@ type CommentForm struct {
 	Content string `json:"content"`
 }
 
-func (c CommentForm) PrepareComment(user models.User, article models.Article) models.Comment {
+func (c CommentForm) PrepareComment(userID uint, articleID uint) models.Comment {
 	comment := models.Comment{
-		UserID:    user.ID,
+		UserID:    userID,
 		Title:     c.Title,
 		Content:   c.Content,
 		CreatedAt: time.Now(),
-		ArticleID: article.ID,
+		ArticleID: articleID,
 	}
 	return comment
 }
