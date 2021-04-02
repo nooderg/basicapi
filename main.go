@@ -22,20 +22,18 @@ func main() {
 
 	log.Println("Connected to database!")
 
-	r.HandleFunc("/article", controllers.PostArticle).Methods("POST")
+	r.HandleFunc("/article", middlewares.JWTVerify(controllers.PostArticle)).Methods("POST")
 	r.HandleFunc("/article/{id}", controllers.GetArticle).Methods("GET")
-	r.HandleFunc("/article/{id}/like", controllers.LikeArticle).Methods("POST")
-	r.HandleFunc("/article/{id}/dislike", controllers.DislikeArticle).Methods("POST")
-
-	r.HandleFunc("/article/{id}/comment", controllers.PostComment).Methods("POST")
-	r.HandleFunc("/article/{id}/comment/like", controllers.PostLikeComment).Methods("POST")
-	r.HandleFunc("/article/{id}/comment/dislike", controllers.PostDislikeComment).Methods("POST")
+	r.HandleFunc("/article/{id}", middlewares.JWTVerify(controllers.EditArticle)).Methods("PUT")
+	r.HandleFunc("/article/{id}/opinion", middlewares.JWTVerify(controllers.RateArticle)).Methods("POST")
 
 	r.HandleFunc("/articles", controllers.ListArticles).Methods("GET")
 
+	r.HandleFunc("/article/{id}/comment", middlewares.JWTVerify(controllers.PostComment)).Methods("POST")
+
 	r.HandleFunc("/login", controllers.HandleLogin).Methods("POST")
 	r.HandleFunc("/register", controllers.HandleRegister).Methods("POST")
-	r.HandleFunc("/me", middlewares.JWTVerify(controllers.GetProfile)).Methods("GET")
+	r.HandleFunc("/me", middlewares.JWTVerify(controllers.GetMe)).Methods("GET")
 	r.HandleFunc("/users/{id}", controllers.GetProfile).Methods("GET")
 	r.HandleFunc("/users/{id}", middlewares.JWTVerify(controllers.EditProfile)).Methods("PUT")
 

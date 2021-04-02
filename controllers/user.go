@@ -93,8 +93,6 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 
 	jwtToken := utils.GenerateToken(user.ID)
 
-	user.PrepareResponse()
-
 	err = json.NewEncoder(w).Encode(jwtToken)
 	if err != nil {
 		log.Println("cannot encode response")

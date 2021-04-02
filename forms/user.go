@@ -12,6 +12,7 @@ import (
 // UserForm is used to edit or create an user
 type UserForm struct {
 	Dob             time.Time `json:"dob"`
+	Email           string    `json:"email"`
 	Username        string    `json:"username"`
 	Password        string    `json:"password"`
 	ConfirmPassword string    `json:"confirm_password"`
@@ -43,6 +44,7 @@ func (u UserForm) PrepareUser() (*models.User, error) {
 		Username: u.Username,
 		Password: string(hashedPassword),
 		Dob:      dob,
+		Email:    u.Email,
 	}
 	return &user, nil
 }
