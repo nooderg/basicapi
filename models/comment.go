@@ -2,14 +2,14 @@ package models
 
 import "time"
 
-// Comment represents the comment
+// Comment represents the comment in the DB
 type Comment struct {
-	ID        int
-	Username  string    `json:"username"`
+	ID        uint      `json:"id" gorm:"primary_key"`
+	UserID    uint      `json:"-"`
+	User      User      `json:"user"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"created_at"`
-	ArticleID string    `json:"article_id"`
-	Likes     []int     `json:"likes"`
-	Dislike   []int     `json:"dislike"`
+	ArticleID uint
+	Article   Article
 }
