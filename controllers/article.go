@@ -160,7 +160,7 @@ func EditArticle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if uint(userID) != article.UserID {
-		log.Println("cannot edit this article!")
+		log.Println("you cannot edit this article!")
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}

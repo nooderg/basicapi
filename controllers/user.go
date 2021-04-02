@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -158,6 +159,15 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 
 // EditProfile takes the UserForm, edits the profile
 func EditProfile(w http.ResponseWriter, r *http.Request) {
+	userIDToEdit, _ := strconv.Atoi(mux.Vars(r)["id"])
+	userID, _ := strconv.Atoi(r.Header.Get("user_id"))
+
+	if userID != userIDToEdit {
+		log.Println("cannot decode request body")
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	var userForm forms.UserForm
 	err := json.NewDecoder(r.Body).Decode(&userForm)
 	if err != nil {
@@ -179,19 +189,10 @@ func EditProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := r.Header.Get("user_id")
-	var user models.User
-	err = db.Model(&models.User{}).Where("id = ?", userID).Take(&user).Error
-	if err != nil {
-		log.Println("user does not exist")
-		w.WriteHeader(http.StatusForbidden)
-		return
-	}
-
 	newUser, err := userForm.PrepareUser()
-	newUser.ID = uint(user.ID)
+	newUser.ID = uint(userIDToEdit)
 
-	err = db.Model(&models.User{}).Where("id = ?", user.ID).Updates(newUser).Error
+	err = db.Model(&models.User{}).Where("id = ?", userIDToEdit).Updates(newUser).Error
 	if err != nil {
 		log.Println("cannot update user")
 		w.WriteHeader(http.StatusForbidden)
