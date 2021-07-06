@@ -28,4 +28,4 @@ https://www.getpostman.com/collections/31cf12a58260232d9e05
 
 - Armand Benichou
 
-- James Harrys
+- James Bissick
