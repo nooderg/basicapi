@@ -4,56 +4,31 @@ import (
 	"basic-api/config"
 	"basic-api/forms"
 	"basic-api/models"
+	"basic-api/repository"
+	"basic-api/utils"
 	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"gorm.io/gorm"
 )
 
-func FillArticle(db *gorm.DB, article *models.Article) error {
-	if article.ID != 0 {
-		err := db.Model(&models.User{}).Where("id = ?", article.UserID).Take(&article.User).Error
-		if err != nil {
-			return err
-		}
-		article.User.PrepareResponse()
-
-		err = db.Model(&models.Comment{}).Where("article_id = ?", article.ID).Find(&article.Comments).Error
-		if err != nil {
-			return err
-		}
-
-		err = db.Model(&models.Opinion{}).Where("article_id = ?", article.ID).Find(&article.Opinion).Error
-		return err
-	}
-	return nil
-}
-
-// GetArticle enocodes an article
+// GetArticle encodes an article
 func GetArticle(w http.ResponseWriter, r *http.Request) {
+	db := config.DBClient
+
 	articleID := mux.Vars(r)["id"]
-
-	db, err := config.InitDB()
+	article, err := repository.GetArticle(articleID)
 	if err != nil {
-		log.Println("cannot init db")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	var article models.Article
-	err = db.Model(&models.Article{}).Where("id = ?", articleID).Take(&article).Error
-	if err != nil {
-		log.Println("article does not exist")
+		log.Println(err.Error())
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
-	FillArticle(db, &article)
+	utils.FillArticle(db, article)
 
-	err = json.NewEncoder(w).Encode(&article)
+	err = json.NewEncoder(w).Encode(article)
 	if err != nil {
 		log.Println("cannot encode response")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -61,26 +36,19 @@ func GetArticle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetArticles enocodes all the articles
-func ListArticles(w http.ResponseWriter, r *http.Request) {
-	var articles []models.Article
+// GetArticles encodes all the articles
+func GetArticles(w http.ResponseWriter, r *http.Request) {
+	db := config.DBClient
 
-	db, err := config.InitDB()
+	articles, err := repository.GetArticles()
 	if err != nil {
-		log.Println("cannot init db")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	err = db.Model(&models.Article{}).Find(&articles).Error
-	if err != nil {
-		log.Println("article does not exist")
+		log.Println(err.Error())
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
 	for _, article := range articles {
-		FillArticle(db, &article)
+		utils.FillArticle(db, &article)
 	}
 
 	err = json.NewEncoder(w).Encode(&articles)
@@ -91,17 +59,12 @@ func ListArticles(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// PostArticles posts an article into the database
+// PostArticle posts an article into the database
 func PostArticle(w http.ResponseWriter, r *http.Request) {
-	db, err := config.InitDB()
-	if err != nil {
-		log.Println("cannot init db")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	db := config.DBClient
 
 	var articleForm forms.ArticleForm
-	err = json.NewDecoder(r.Body).Decode(&articleForm)
+	err := json.NewDecoder(r.Body).Decode(&articleForm)
 	if err != nil {
 		log.Println("cannot decode request body")
 		w.WriteHeader(http.StatusBadRequest)
@@ -118,9 +81,9 @@ func PostArticle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	article := articleForm.PrepareArticle(user)
-	err = db.Create(&article).Error
+	err = repository.CreateArticle(&article)
 	if err != nil {
-		log.Println("cannot create article")
+		log.Println(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -132,20 +95,15 @@ func PostArticle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// PostArticles posts an article into the database
+// EditArticle posts an article into the database
 func EditArticle(w http.ResponseWriter, r *http.Request) {
+	db := config.DBClient
+
 	var articleForm forms.ArticleForm
 	err := json.NewDecoder(r.Body).Decode(&articleForm)
 	if err != nil {
 		log.Println("cannot decode request body")
 		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	db, err := config.InitDB()
-	if err != nil {
-		log.Println("cannot init db")
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -168,14 +126,14 @@ func EditArticle(w http.ResponseWriter, r *http.Request) {
 	article.Title = articleForm.Title
 	article.Content = articleForm.Content
 
-	err = db.Model(&models.Article{}).Where("id = ?", article.ID).Updates(article).Error
+	err = repository.UpdateArticle(&article)
 	if err != nil {
 		log.Println("cannot update user")
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
-	FillArticle(db, &article)
+	utils.FillArticle(db, &article)
 
 	err = json.NewEncoder(w).Encode(article)
 	if err != nil {

@@ -15,10 +15,7 @@ func main() {
 	r := mux.NewRouter()
 
 	log.Println("Connecting to database...")
-	_, err := config.InitDB()
-	if err != nil {
-		panic(err)
-	}
+	config.InitDB()
 
 	log.Println("Connected to database!")
 
@@ -28,7 +25,7 @@ func main() {
 	r.HandleFunc("/article/{id}/opinion", middlewares.JWTVerify(controllers.RateArticle)).Methods("POST")
 	r.HandleFunc("/article/{id}/opinion", middlewares.JWTVerify(controllers.DeleteOpinion)).Methods("DELETE")
 
-	r.HandleFunc("/articles", controllers.ListArticles).Methods("GET")
+	r.HandleFunc("/articles", controllers.GetArticles).Methods("GET")
 
 	r.HandleFunc("/article/{id}/comment", middlewares.JWTVerify(controllers.PostComment)).Methods("POST")
 	r.HandleFunc("/article/{id}/comment/{commentID}", middlewares.JWTVerify(controllers.EditComment)).Methods("PUT")
